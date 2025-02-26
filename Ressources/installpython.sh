@@ -88,5 +88,8 @@ EOF
 echo "=== ATTRIBUTION DES PERMISSIONS D'EXECUTION ==="
 chmod +x ransomware.py
 
+echo "=== ACTIVATION DE L'ENVIRONNEMENT VIRTUEL ==="
+source env/bin/activate
+
 echo "=== EXECUTION DU SCRIPT PYTHON ==="
-sudo python3 ransomware.py
+sudo env "PATH=$PATH" python3 ransomware.py
