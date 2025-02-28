@@ -1,0 +1,34 @@
+from scapy.all import *
+import logging
+
+class SSLStripDetector:
+    def __init__(self):
+        self.suspicious_connections = {}
+        self.logger = logging.getLogger('ssl_strip_detector')
+
+    def analyze_packet(self, packet):
+        """Analyse les paquets pour détecter le SSL stripping"""
+        if TCP in packet and packet[TCP].dport == 80:
+            # Vérification des redirections suspectes
+            if packet.haslayer(Raw):
+                payload = packet[Raw].load.decode('utf-8', 'ignore')
+                if 'CONNECT' in payload or 'https://' in payload:
+                    self.log_suspicious_activity(packet)
+
+    def log_suspicious_activity(self, packet):
+        """Enregistre les activités suspectes"""
+        src_ip = packet[IP].src
+        dst_ip = packet[IP].dst
+
+        self.logger.warning(f"Activité suspecte détectée:")
+        self.logger.warning(f"Source: {src_ip}")
+        self.logger.warning(f"Destination: {dst_ip}")
+
+    def start_monitoring(self):
+        """Démarre la surveillance du réseau"""
+        sniff(filter="tcp port 80", prn=self.analyze_packet)
+
+# Test de détection
+def test_detection():
+    detector = SSLStripDetector()
+    detector.start_monitoring()
