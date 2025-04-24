@@ -56,9 +56,9 @@ Il a été développé dans un cadre de formation pour sensibiliser aux risques 
 ## 🤖 Auteur
 
 **Geoffrey Rouvel**  
-Étudiant à l’IPSSI | Administrateur Réseau & Sécurité  
+Étudiant à l’IPSSI | Administrateur Systèmes & Réseaux  
 GitHub : [@RgGeolll](https://github.com/RgGeolll)
 
 ---
 
-🎓 Projet réalisé dans le cadre du module **Cryptographie** – Mastère Cybersécurité & Cloud.
+🎓 Projet réalisé dans le cadre du module **Introduction à l'écriture d'un malware en python** – Mastère Cybersécurité & Cloud.
