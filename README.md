@@ -53,7 +53,7 @@ Il a été développé dans un cadre de formation pour sensibiliser aux risques 
 
 ---
 
-## 🧠 Auteur
+## 🤖 Auteur
 
 **Geoffrey Rouvel**  
 Étudiant à l’IPSSI | Administrateur Réseau & Sécurité  
